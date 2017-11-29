@@ -4,23 +4,30 @@ import nltk
 from nltk.probability import FreqDist
 from nltk.util import bigrams
 
-german = u"Veränderungen über einen Walzer"
+print ()
 
 f = open('effie.txt')
 raw = f.read()
 effie_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(raw)
 
+# Exclude stopwords
+# TODO: case-insensitive filtering
+# reallocate stopwords filtering to LATER stage, after bigram collection; because NEW, invalid bigrams occur
+f = open('stopwords.txt')
+stopwords = f.read()
+stopwords_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(raw)
+
+tokenized_filtered = [word for word in stopwords_tokenized if word not in stopwords]
+
 #print ()
 #print (len(effie_tokenized))
 #print (effie_tokenized[0:500])
 
-fdist1 = FreqDist(effie_tokenized)
-print (fdist1)
-print (fdist1.most_common(10))
-print ("total number of samples:", fdist1.N())
+fdist1 = FreqDist(tokenized_filtered)
+print ("Descriptive counts from Fredist: ", fdist1)
+print ("Most common words in Effie Briest: \n", fdist1.most_common(50))
 
-effie_bigrams = list(bigrams(effie_tokenized))
-print("first 10 effie bigrams:", effie_bigrams[0:10])
 
+effie_bigrams = list(bigrams(tokenized_filtered))
 fdist_bigrams = nltk.FreqDist(effie_bigrams)
-print("first 10 frequency determinations of effie bigrams:", fdist_bigrams.most_common(10))
+print("most frequent Bigrams in Effie Briest: \n", fdist_bigrams.most_common(50))
