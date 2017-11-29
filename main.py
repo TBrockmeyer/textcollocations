@@ -19,10 +19,6 @@ stopwords_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(raw)
 
 tokenized_filtered = [word for word in stopwords_tokenized if word not in stopwords]
 
-#print ()
-#print (len(effie_tokenized))
-#print (effie_tokenized[0:500])
-
 fdist1 = FreqDist(tokenized_filtered)
 print ("Descriptive counts from Fredist: ", fdist1)
 print ("Most common words in Effie Briest: \n", fdist1.most_common(50))
