@@ -5,6 +5,8 @@ from nltk.probability import FreqDist
 from nltk.util import bigrams
 from operator import itemgetter
 
+# TODO: delete unnecessary print statements
+
 print ()
 
 f = open('effie.txt')
@@ -13,22 +15,18 @@ effie_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(raw)
 
 # reallocate stopwords filtering to LATER stage, after bigram collection; because NEW, invalid bigrams occur
 
-# Exclude stopwords
-# tokenized_filtered = [word for word in stopwords_tokenized if word.lower() not in stopwords.lower()]
-
 fdist1 = FreqDist(effie_tokenized)
 print ("Descriptive counts from FreqDist: ", fdist1)
 print ("Most common words in Effie Briest: \n", fdist1.most_common(4))
 
 effie_bigrams = list(bigrams(effie_tokenized))
 
-# Determine number of occurences of every bigram
-
-fdist_bigrams = nltk.FreqDist(effie_bigrams)
-print("Most frequent Bigrams in Effie Briest: \n", fdist_bigrams.most_common(4))
-
 # Print several nltk outputs for testing
 
+#print ("effie_bigrams[0:20]", effie_bigrams[0:20])
+#print ("type(effie_bigrams[3][0])", type(effie_bigrams[3][0]))
+#print ("effie_bigrams[3][0]", effie_bigrams[3][0])
+#print ("effie_bigrams[3][0].lower()", effie_bigrams[3][0].lower())
 #print("First Bigrams (with count) in Effie Briest: \n", fdist_bigrams)
 #print ("fdist_bigrams: ", fdist_bigrams)
 #print ("type(fdist_bigrams): ", type(fdist_bigrams))
@@ -38,14 +36,57 @@ print("Most frequent Bigrams in Effie Briest: \n", fdist_bigrams.most_common(4))
 #print ("len(fdist_bigrams)", len(fdist_bigrams))
 
 # Prepare filtering of bigrams list by stopwords
+# We filter after creating the bigrams. It would not make sense to filter directly after tokenization,
+# because we don't want to let words that were no bigrams in the original text to move together;
+# even in the sentence "wollen, daß" we don't want "wollen" and "daß" to become a bigram -
+# commas separate clauses, and these usually represent self-contained units with their own meaning and message.
+# In sentiment analysis, word n-grams would need to be analyzed with respect to inter-clausal relationships,
+# but this is not part of our agenda here - aggregating words from separate clauses would distort our results now.
 
 # Load pre-defined stopwords list
 
-# f = open('stopwords.txt')
-# stopwords = f.read()
-# stopwords_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(raw)
+f = open('stopwords.txt')
+stopwords = f.read()
+print ("type(stopwords)", type(stopwords))
+stopwords_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(stopwords)
+
+# print ("stopwords_tokenized[0:20]", stopwords_tokenized[0:20])
+
+# Create delimiters-stopword list, such as ',','.', '»', '!', '?', ';', '(', ')' (comma to be discussed)
+
+# TODO: check result bigramlist_occurence_descending (by creating string file) and adjust delimiter list + '-',...
+
+delimiters_tokenized = [',', '.', '»', '«', '.«', '?«', '!«', '«,', '!', '?', ';', "'", '(', ')']
+stopchars_tokenized = stopwords_tokenized + delimiters_tokenized
+
+# Create a linebreak-delimited string from these tokenized stopwords again, which is easier to search and compare with the novel bigrams later
+
+stopchars = ''.join(stopchars_tokenized)
+
+print ("stopchars_tokenized[0:20]", stopchars_tokenized[-20:-1])
+
+# Add delimiters to stopwords list
 
 # Filter bigrams list by stopwords
+
+# Exclude stopwords
+# rewrite for accessing both bigram components: tokenized_filtered = [word for word in stopwords_tokenized if word.lower() not in stopwords.lower()]
+
+# Determine number of occurences of every bigram
+
+effie_bigrams_tmp = []
+for h in range (0, len(effie_bigrams)):
+    if (effie_bigrams[h][0].lower() not in stopchars.lower()) and (effie_bigrams[h][1].lower() not in stopchars.lower()):
+        effie_bigrams_tmp.append(effie_bigrams[h])
+        
+print ("effie_bigrams_tmp[0:20]: ", effie_bigrams_tmp[0:20])
+
+# The bigrams are cleaned of stopwords and stop-delimiters now
+
+effie_bigrams = effie_bigrams_tmp
+
+fdist_bigrams = nltk.FreqDist(effie_bigrams)
+print("Most frequent Bigrams in Effie Briest: \n", fdist_bigrams.most_common(4))
 
 # create bigram list (with counts) ordered by first bigram component
 
@@ -85,11 +126,4 @@ for i in range (0, len(bigrams_sortby_first)):
 # Sort created list of bigrams with counts by number of bigram occurence, descending
 
 bigramlist_occurence_descending = sorted(bigram_listoflists, key=itemgetter(1,0), reverse=True)
-print ("bigramlist_occurence_descending[0:100] ", bigramlist_occurence_descending[0:100])
-
-# Create delimiters-stopword list, such as '.', '»', '!', '?', ',', ';', '(', ')' (comma to be discussed)
-
-# Filter bigrams by delimiters
-
-#fdist_bigrams = nltk.FreqDist(effie_bigrams)
-#print("Most frequent Bigrams in Effie Briest: \n", fdist_bigrams.most_common(4))
+print ("bigramlist_occurence_descending[0:10] ", bigramlist_occurence_descending[0:10])
