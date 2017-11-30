@@ -4,7 +4,7 @@ import nltk
 from nltk.probability import FreqDist
 from nltk.util import bigrams
 from operator import itemgetter
-import json
+#import json
 
 # TODO: delete unnecessary print statements
 
@@ -123,5 +123,16 @@ print ("bigramlist_occurence_descending[0:10] ", bigramlist_occurence_descending
 
 # Create a text file with all bigrams and counts
 
-#with open('bigrams.txt','w') as myfile:
-    #json.dump(bigramlist_occurence_descending,myfile)
+with open('bigrams.txt', 'w') as f:
+    for k in range (0, len(bigramlist_occurence_descending)):
+        rowstring = '\n'
+        rowstring += bigramlist_occurence_descending[k][0][0]
+        rowstring += ", "
+        rowstring += bigramlist_occurence_descending[k][0][1]
+        rowstring += "\t"
+        for j in range (1, len(bigramlist_occurence_descending[k])):
+            rowstring += str(bigramlist_occurence_descending[k][j])
+            rowstring += "\t"
+        rowstring += "\n"
+        f.write(rowstring + "\n")
+        f.write('\n')
