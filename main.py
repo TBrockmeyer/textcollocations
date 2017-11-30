@@ -55,7 +55,7 @@ stopwords_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(stopwords)
 
 # TODO: check result bigramlist_occurence_descending (by creating string file) and adjust delimiter list + '-',...
 
-delimiters_tokenized = [',', '.', '»', '«', '.«', '?«', '!«', '«,', '!', '?', ';', ':', "'", '(', ')']
+delimiters_tokenized = [',', '.', '»', '«', '.«', ',«', "'«", '?«', '!«', '«,', '!', '?', ';', ':', "'", '(', ')', '),', '...', '...!', '...,', '...?', '...«', '..«', '.«‹', '.‹']
 stopchars_tokenized = stopwords_tokenized + delimiters_tokenized
 
 # Create a linebreak-delimited string from these tokenized stopwords again, which is easier to search and compare with the novel bigrams later
@@ -121,6 +121,13 @@ for i in range (0, len(bigrams_sortby_first)):
 bigramlist_occurence_descending = sorted(bigram_listoflists, key=itemgetter(1,0), reverse=True)
 print ("bigramlist_occurence_descending[0:10] ", bigramlist_occurence_descending[0:10])
 
+# def calcL(k,n,p)
+# p^k * (1-p)^(n-k)
+
+# def calcLogLambda(N, c1, c2, c12)
+
+"""
+
 # Create a text file with all bigrams and counts
 
 with open('bigrams.txt', 'w') as f:
@@ -136,3 +143,4 @@ with open('bigrams.txt', 'w') as f:
         rowstring += "\n"
         f.write(rowstring + "\n")
         f.write('\n')
+"""
