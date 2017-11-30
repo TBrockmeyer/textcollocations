@@ -11,6 +11,7 @@ print ()
 
 f = open('effie.txt')
 raw = f.read()
+print (raw[1:1000])
 effie_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(raw)
 
 # reallocate stopwords filtering to LATER stage, after bigram collection; because NEW, invalid bigrams occur
@@ -56,7 +57,7 @@ stopwords_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(stopwords)
 
 # TODO: check result bigramlist_occurence_descending (by creating string file) and adjust delimiter list + '-',...
 
-delimiters_tokenized = [',', '.', '»', '«', '.«', '?«', '!«', '«,', '!', '?', ';', "'", '(', ')']
+delimiters_tokenized = [',', '.', '»', '«', '.«', '?«', '!«', '«,', '!', '?', ';', ':', "'", '(', ')']
 stopchars_tokenized = stopwords_tokenized + delimiters_tokenized
 
 # Create a linebreak-delimited string from these tokenized stopwords again, which is easier to search and compare with the novel bigrams later
