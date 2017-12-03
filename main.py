@@ -54,6 +54,10 @@ stopwords_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(stopwords)
 # Create delimiters-stopword list, such as ',','.', '»', '!', '?', ';', '(', ')' (comma to be discussed)
 
 # TODO: check result bigramlist_occurence_descending (by creating string file) and adjust delimiter list + '-',...
+# TODO: change delimiter-rule to a different rule: only allow bigrams with chars from [A-ZÄÖÜa-zäöü] without ß and é
+# TODO: change for-loop where counts are calculated so that .N() is taken from the filtered bigrams list
+# TODO: calculate c1 c2 c12 p1 p2 p12 etc. and create LogLikelihoods
+# TODO: achieve that this .py-file may be called together with a text file in a "python *.py *.txt" manner from a command line
 
 delimiters_tokenized = [',', '.', '»', '«', '.«', ',«', "'«", '?«', '!«', '«,', '!', '?', ';', ':', "'", '(', ')', '),', '...', '...!', '...,', '...?', '...«', '..«', '.«‹', '.‹']
 stopchars_tokenized = stopwords_tokenized + delimiters_tokenized
