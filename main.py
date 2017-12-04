@@ -4,7 +4,52 @@ import nltk
 from nltk.probability import FreqDist
 from nltk.util import bigrams
 from operator import itemgetter
+import math
 #import json
+
+def _col_log_likelihood(count_a, count_b, count_ab, N):
+    """
+    A function that will just compute log-likelihood estimate, in
+    the original paper it's described in algorithm 6 and 7.
+
+    This *should* be the original Dunning log-likelihood values,
+    unlike the previous log_l function where it used modified
+    Dunning log-likelihood values
+    """
+    p = count_b / N
+    p1 = count_ab / count_a
+    try:
+        p2 = (count_b - count_ab) / (N - count_a)
+    except ZeroDivisionError as e:
+        p2 = 1
+
+    try:
+        summand1 = (count_ab * math.log(p) +
+                    (count_a - count_ab) * math.log(1.0 - p))
+    except ValueError as e:
+        summand1 = 0
+
+    try:
+        summand2 = ((count_b - count_ab) * math.log(p) +
+                    (N - count_a - count_b + count_ab) * math.log(1.0 - p))
+    except ValueError as e:
+        summand2 = 0
+
+    if count_a == count_ab or p1 <= 0 or p1 >= 1:
+        summand3 = 0
+    else:
+        summand3 = (count_ab * math.log(p1) +
+                    (count_a - count_ab) * math.log(1.0 - p1))
+
+    if count_b == count_ab or p2 <= 0 or p2 >= 1:
+        summand4 = 0
+    else:
+        summand4 = ((count_b - count_ab) * math.log(p2) +
+                    (N - count_a - count_b + count_ab) * math.log(1.0 - p2))
+
+    likelihood = summand1 + summand2 - summand3 - summand4
+
+    return (-2.0 * likelihood)
 
 # TODO: delete unnecessary print statements
 
@@ -98,7 +143,7 @@ bigram_listoflists = []
 
 for i in range (0, len(bigrams_sortby_first)):
     current_bigram = bigrams_sortby_first[i]
-    bigram_listoflists.append([current_bigram,0,0,0,0])
+    bigram_listoflists.append([current_bigram,0,0,0,0,0])
     
     # Nr. of AB is calculated:
     bigram_listoflists[i][1] = round(fdist_bigrams.freq(current_bigram)*fdist_bigrams.N(), 0)
@@ -115,6 +160,16 @@ for i in range (0, len(bigrams_sortby_first)):
     number_of_different_bigrams = len(fdist_bigrams) - (bigram_listoflists[i][1] + bigram_listoflists[i][2] + bigram_listoflists[i][3])
     bigram_listoflists[i][4] = number_of_different_bigrams
     
+    count_a = bigram_listoflists[i][2]
+    count_b = bigram_listoflists[i][3]
+    count_ab = bigram_listoflists[i][4]
+    N = fdist_bigrams.N()
+    
+    print ("current_bigram, count_a, count_b, count_ab, N:", current_bigram, count_a, count_b, count_ab, N)
+    
+    current_bigram_LogL = _col_log_likelihood(count_a, count_b, count_ab, N)
+    bigram_listoflists[i][5] = current_bigram_LogL
+    
     #bigram_listoflists.append([bigrams_sortby_first[i],0,0,0,0])
     #bigram_listoflists[i][1] = (fdist_bigrams.freq())*fdist_bigrams.N()
 
@@ -125,10 +180,6 @@ for i in range (0, len(bigrams_sortby_first)):
 bigramlist_occurence_descending = sorted(bigram_listoflists, key=itemgetter(1,0), reverse=True)
 print ("bigramlist_occurence_descending[0:10] ", bigramlist_occurence_descending[0:10])
 
-# def calcL(k,n,p)
-# p^k * (1-p)^(n-k)
-
-# def calcLogLambda(N, c1, c2, c12)
 
 """
 
