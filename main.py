@@ -5,7 +5,12 @@ from nltk.probability import FreqDist
 from nltk.util import bigrams
 from operator import itemgetter
 import math
+import re
 #import json
+
+def only_letters(tested_string):
+    match = re.match("^[A-ZÄÖÜa-zäöü0-9_]*$", tested_string)
+    return match is not None
 
 def _col_log_likelihood(count_a, count_b, count_ab, N):
     """
@@ -61,6 +66,9 @@ print ()
 
 f = open('effie.txt')
 raw = f.read()
+# Make sure that "-"" in Hohen-Cremmen and similar combinations is not taken as separate "word", but a delimiter
+raw = re.sub(r'\b-\b', ' ', raw)
+raw = raw.lower()
 effie_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(raw)
 
 # reallocate stopwords filtering to LATER stage, after bigram collection; because NEW, invalid bigrams occur
@@ -104,37 +112,44 @@ stopwords_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(stopwords)
 
 # TODO: check result bigramlist_occurence_descending (by creating string file) and adjust delimiter list + '-',...
 # TODO: 1) change delimiter-rule to a different rule: only allow bigrams with chars from [A-ZÄÖÜa-zäöü] without ß and é
-# TODO: 2) make sure that - for Hohen-Cremmen and similar is not taken as separate "word"
+# TODO: 2) make sure that "-"" in Hohen-Cremmen and similar combinations is not taken as separate "word", but a delimiter
 # TODO: change for-loop where counts are calculated so that .N() is taken from the filtered bigrams list
     # to be discussed, because the number of single word occurrences should be the same before and after filtering
     # and it is way more convenient to use the count from the tokenized word list
 # TODO: half DONE, revise: calculate c1 c2 c12 p1 p2 p12 etc. and create LogLikelihoods
 # TODO: achieve that this .py-file may be called together with a text file in a "python *.py *.txt" manner from a command line
 
-delimiters_tokenized = [',', '.', '»', '›', '«', '.«', ',«', '.‹«', "'«", '?«', '!«', '«,', '!', '?', ';', ':', "'", '(', ')', '),', '...', '...!', '...,', '...?', '...«', '..«', '.«‹', '.‹']
-stopchars_tokenized = stopwords_tokenized + delimiters_tokenized
+# We could start filtering for "weird" symbols here already, but it's better to do that later by regular expressions
+
+# delimiters_tokenized = [',', '.', '»', '›', '«', '.«', ',«', '.‹«', "'«", '?«', '!«', '«,', '!', '?', ';', ':', "'", '(', ')', '),', '...', '...!', '...,', '...?', '...«', '..«', '.«‹', '.‹']
+# stopchars_tokenized = stopwords_tokenized + delimiters_tokenized
+stopchars_tokenized = stopwords_tokenized
 
 # Create a linebreak-delimited string from these tokenized stopwords again, which is easier to search and compare with the novel bigrams later
 
 stopchars = ''.join(stopchars_tokenized)
 
-# Add delimiters to stopwords list
-
 # Filter bigrams list by stopwords
-
-# Exclude stopwords
-# rewrite for accessing both bigram components: tokenized_filtered = [word for word in stopwords_tokenized if word.lower() not in stopwords.lower()]
-
-# Determine number of occurences of every bigram
 
 effie_bigrams_tmp = []
 for h in range (0, len(effie_bigrams)):
     if (effie_bigrams[h][0].lower() not in stopchars.lower()) and (effie_bigrams[h][1].lower() not in stopchars.lower()):
         effie_bigrams_tmp.append(effie_bigrams[h])
-
-# The bigrams are cleaned of stopwords and stop-delimiters now
-
+        
 effie_bigrams = effie_bigrams_tmp
+        
+# Filter bigrams list so that only those bigrams with symbols from [0-9] and [A-Za-z] are kept
+
+effie_bigrams_tmp = []
+for h in range (0, len(effie_bigrams)):
+    if (only_letters(effie_bigrams[h][0]) and only_letters(effie_bigrams[h][1])):
+        effie_bigrams_tmp.append(effie_bigrams[h])
+        
+effie_bigrams = effie_bigrams_tmp
+
+# The bigrams are cleaned of stopwords and "weird symbols" now
+
+# Determine number of occurences of every bigram
 
 fdist_bigrams = nltk.FreqDist(effie_bigrams)
 #print("Most frequent Bigrams in Effie Briest: \n", fdist_bigrams.most_common(4))
@@ -155,12 +170,12 @@ for i in range (0, len(bigrams_sortby_first)):
     # Nr. of AB is calculated:
     bigram_listoflists[i][1] = round(fdist_bigrams.freq(current_bigram)*fdist_bigrams.N(), 0)
     
-    # Nr. of A~B is calculated: number_of_A_total - number of bigrams AB    
+    # Nr. of A is calculated: number_of_A_total   
     number_of_A_total = round(fdist1.freq(current_bigram[0])*fdist1.N(), 0)
     # bigram_listoflists[i][2] = number_of_A_total - bigram_listoflists[i][1]
     bigram_listoflists[i][2] = number_of_A_total
     
-    # Nr. of ~AB is calculated: number_of_B_total - number of bigrams AB
+    # Nr. of B is calculated: number_of_B_total
     number_of_B_total = round(fdist1.freq(current_bigram[1])*fdist1.N(), 0)
     # bigram_listoflists[i][3] = number_of_B_total - bigram_listoflists[i][1]
     bigram_listoflists[i][3] = number_of_B_total
