@@ -17,7 +17,11 @@ def _col_log_likelihood(count_a, count_b, count_ab, N):
     Dunning log-likelihood values
     """
     p = count_b / N
-    p1 = count_ab / count_a
+    try:
+        p1 = count_ab / count_a
+    except ZeroDivisionError as e:
+        p1 = 1
+
     try:
         p2 = (count_b - count_ab) / (N - count_a)
     except ZeroDivisionError as e:
@@ -72,7 +76,7 @@ effie_bigrams = list(bigrams(effie_tokenized))
 #print ("type(effie_bigrams[3][0])", type(effie_bigrams[3][0]))
 #print ("effie_bigrams[3][0]", effie_bigrams[3][0])
 #print ("effie_bigrams[3][0].lower()", effie_bigrams[3][0].lower())
-#print("First Bigrams (with count) in Effie Briest: \n", fdist_bigrams)
+#print ("First Bigrams (with count) in Effie Briest: \n", fdist_bigrams)
 #print ("fdist_bigrams: ", fdist_bigrams)
 #print ("type(fdist_bigrams): ", type(fdist_bigrams))
 #print ("(fdist_bigrams.freq((',', 'daß')))*fdist_bigrams.N(): ", (fdist_bigrams.freq((',', 'daß')))*fdist_bigrams.N())
@@ -99,12 +103,15 @@ stopwords_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(stopwords)
 # Create delimiters-stopword list, such as ',','.', '»', '!', '?', ';', '(', ')' (comma to be discussed)
 
 # TODO: check result bigramlist_occurence_descending (by creating string file) and adjust delimiter list + '-',...
-# TODO: change delimiter-rule to a different rule: only allow bigrams with chars from [A-ZÄÖÜa-zäöü] without ß and é
+# TODO: 1) change delimiter-rule to a different rule: only allow bigrams with chars from [A-ZÄÖÜa-zäöü] without ß and é
+# TODO: 2) make sure that - for Hohen-Cremmen and similar is not taken as separate "word"
 # TODO: change for-loop where counts are calculated so that .N() is taken from the filtered bigrams list
-# TODO: calculate c1 c2 c12 p1 p2 p12 etc. and create LogLikelihoods
+    # to be discussed, because the number of single word occurrences should be the same before and after filtering
+    # and it is way more convenient to use the count from the tokenized word list
+# TODO: half DONE, revise: calculate c1 c2 c12 p1 p2 p12 etc. and create LogLikelihoods
 # TODO: achieve that this .py-file may be called together with a text file in a "python *.py *.txt" manner from a command line
 
-delimiters_tokenized = [',', '.', '»', '«', '.«', ',«', "'«", '?«', '!«', '«,', '!', '?', ';', ':', "'", '(', ')', '),', '...', '...!', '...,', '...?', '...«', '..«', '.«‹', '.‹']
+delimiters_tokenized = [',', '.', '»', '›', '«', '.«', ',«', '.‹«', "'«", '?«', '!«', '«,', '!', '?', ';', ':', "'", '(', ')', '),', '...', '...!', '...,', '...?', '...«', '..«', '.«‹', '.‹']
 stopchars_tokenized = stopwords_tokenized + delimiters_tokenized
 
 # Create a linebreak-delimited string from these tokenized stopwords again, which is easier to search and compare with the novel bigrams later
@@ -150,22 +157,24 @@ for i in range (0, len(bigrams_sortby_first)):
     
     # Nr. of A~B is calculated: number_of_A_total - number of bigrams AB    
     number_of_A_total = round(fdist1.freq(current_bigram[0])*fdist1.N(), 0)
-    bigram_listoflists[i][2] = number_of_A_total - bigram_listoflists[i][1]
+    # bigram_listoflists[i][2] = number_of_A_total - bigram_listoflists[i][1]
+    bigram_listoflists[i][2] = number_of_A_total
     
     # Nr. of ~AB is calculated: number_of_B_total - number of bigrams AB
     number_of_B_total = round(fdist1.freq(current_bigram[1])*fdist1.N(), 0)
-    bigram_listoflists[i][3] = number_of_B_total - bigram_listoflists[i][1]
+    # bigram_listoflists[i][3] = number_of_B_total - bigram_listoflists[i][1]
+    bigram_listoflists[i][3] = number_of_B_total
     
     # Nr. of ~A~B is calculated: number_of_different_bigrams - (Nr. of A~B + Nr. of ~AB)
-    number_of_different_bigrams = len(fdist_bigrams) - (bigram_listoflists[i][1] + bigram_listoflists[i][2] + bigram_listoflists[i][3])
+    number_of_different_bigrams = len(fdist_bigrams) - (- bigram_listoflists[i][1] + bigram_listoflists[i][2] + bigram_listoflists[i][3])
     bigram_listoflists[i][4] = number_of_different_bigrams
     
+    count_ab = bigram_listoflists[i][1]
     count_a = bigram_listoflists[i][2]
     count_b = bigram_listoflists[i][3]
-    count_ab = bigram_listoflists[i][4]
     N = fdist_bigrams.N()
     
-    print ("current_bigram, count_a, count_b, count_ab, N:", current_bigram, count_a, count_b, count_ab, N)
+    #print ("current_bigram, count_a, count_b, count_ab, N:", current_bigram, count_a, count_b, count_ab, N)
     
     current_bigram_LogL = _col_log_likelihood(count_a, count_b, count_ab, N)
     bigram_listoflists[i][5] = current_bigram_LogL
@@ -177,8 +186,8 @@ for i in range (0, len(bigrams_sortby_first)):
 
 # Sort created list of bigrams with counts by number of bigram occurence, descending
 
-bigramlist_occurence_descending = sorted(bigram_listoflists, key=itemgetter(1,0), reverse=True)
-print ("bigramlist_occurence_descending[0:10] ", bigramlist_occurence_descending[0:10])
+bigramlist_occurence_descending = sorted(bigram_listoflists, key=itemgetter(5,0), reverse=True)
+print ("bigramlist_occurence_descending[0:30] ", bigramlist_occurence_descending[0:30])
 
 
 """
