@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
+
 This example finds bigrams that occur statistically significantly often in a given text.
 Statistical analysis follows the work of Dunning in "Accurate Methods for the Statistics of Surprise and Coincidence".
 
