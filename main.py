@@ -9,6 +9,7 @@ The text should be encoded in UTF-8:
     $ python main.py <path-to-text-file>
 Try this on a sample text in the resources directory, the German novel "Effie Briest" by Theodor Fontane:
     $ python main.py effie.txt
+    
 """
 
 import nltk
