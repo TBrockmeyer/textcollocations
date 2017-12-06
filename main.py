@@ -72,17 +72,17 @@ def main(text_file):
     # Make sure that "-"" in Hohen-Cremmen and similar combinations is not taken as separate "word", but a delimiter
     raw = re.sub(r'\b-\b', ' ', raw)
     raw = raw.lower()
-    effie_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(raw)
+    giventext_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(raw)
     
     # reallocate stopwords filtering to LATER stage, after bigram collection; because NEW, invalid bigrams occur
     
     # Filter tokenized words list so that only those words with symbols from [0-9] and [A-Za-z] are kept
     # (and no "words" like [',', '.', '»', '›', '«', '.«', ',«', '.‹«', "'«", '?«', '!«', '«,', '!', '?', ';', ':', "'", '(', ')', '),', '...', '...!', '...,', '...?', '...«', '..«', '.«‹', '.‹'])
     
-    effie_tokenized_tmp = []
-    for l in range (0, len(effie_tokenized)):
-        if (only_letters(effie_tokenized[l]) and only_letters(effie_tokenized[l])):
-            effie_tokenized_tmp.append(effie_tokenized[l])
+    giventext_tokenized_tmp = []
+    for l in range (0, len(giventext_tokenized)):
+        if (only_letters(giventext_tokenized[l]) and only_letters(giventext_tokenized[l])):
+            giventext_tokenized_tmp.append(giventext_tokenized[l])
             
     # Load pre-defined stopwords list
     
@@ -94,31 +94,31 @@ def main(text_file):
     stopchars = stopwords_tokenized
     
     # Filter tokenized words by stopwords
-    effie_tokenized_tmp_tmp = []
-    for o in range (0, len(effie_tokenized_tmp)):
-        if (effie_tokenized_tmp[o].lower() not in stopchars):
-            effie_tokenized_tmp_tmp.append(effie_tokenized_tmp[o])
-    effie_tokenized_tmp = effie_tokenized_tmp_tmp
+    giventext_tokenized_tmp_tmp = []
+    for o in range (0, len(giventext_tokenized_tmp)):
+        if (giventext_tokenized_tmp[o].lower() not in stopchars):
+            giventext_tokenized_tmp_tmp.append(giventext_tokenized_tmp[o])
+    giventext_tokenized_tmp = giventext_tokenized_tmp_tmp
     
     # The bigrams are cleaned of stopwords and "weird symbols" now
                  
-    # We take later word counts and create the effie_bigrams from the effie_tokenized_tmp list,
+    # We take later word counts and create the giventext_bigrams from the giventext_tokenized_tmp list,
     # because it only contains "real words" 
-    # However, we could create the effie_bigrams list from effie_tokenized
+    # However, we could create the giventext_bigrams list from giventext_tokenized
     # AFTER creation of bigrams because this way,
     # we would respect that "weird symbols" often serve as delimiters
     # that separate words that have no reasonable "bigram relationship"
     
-    fdist2 = FreqDist(effie_tokenized_tmp)
+    fdist2 = FreqDist(giventext_tokenized_tmp)
     # print ("Descriptive counts from FreqDist fdist2: ", fdist2)
     
     # We create bigrams from the already filtered list of tokenized words
     
-    effie_bigrams = list(bigrams(effie_tokenized_tmp))
+    giventext_bigrams = list(bigrams(giventext_tokenized_tmp))
     
     # Determine number of occurences of every bigram
     
-    fdist_bigrams = nltk.FreqDist(effie_bigrams)
+    fdist_bigrams = nltk.FreqDist(giventext_bigrams)
     
     # create bigram list (with counts) ordered by first bigram component
     
@@ -149,7 +149,7 @@ def main(text_file):
         count_ab = number_of_AB
         count_a = number_of_A_total
         count_b = number_of_B_total
-        N = len(effie_tokenized_tmp)
+        N = len(giventext_tokenized_tmp)
         # N can also be obtained from fdist2:
         #N = fdist2.N()
             
