@@ -24,10 +24,10 @@ import sys
 #import json
 
 def only_letters(tested_string):
-    match = re.match("^[A-ZÄÖÜa-zäöü0-9_]*$", tested_string)
+    match = re.match("^[A-Za-z0-9_]*$", tested_string)
     return match is not None
 
-def _col_log_likelihood(count_a, count_b, count_ab, N):
+def calculate_log_likelihood(count_a, count_b, count_ab, N):
     p = count_b / N
     try:
         p1 = count_ab / count_a
@@ -91,87 +91,30 @@ def main(text_file):
     stopwords_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(stopwords)
     
     stopchars_tokenized = stopwords_tokenized
-    
-    # Create a linebreak-delimited string from these tokenized stopwords again, which is easier to search and compare with the novel bigrams later
-    
-    stopchars = ''.join(stopchars_tokenized)
+    stopchars = stopwords_tokenized
     
     # Filter tokenized words by stopwords
     effie_tokenized_tmp_tmp = []
     for o in range (0, len(effie_tokenized_tmp)):
-        if (effie_tokenized_tmp[o].lower() not in stopchars.lower()):
+        if (effie_tokenized_tmp[o].lower() not in stopchars):
             effie_tokenized_tmp_tmp.append(effie_tokenized_tmp[o])
     effie_tokenized_tmp = effie_tokenized_tmp_tmp
-            
-    # print ("effie_tokenized_tmp[0:1000]:",effie_tokenized_tmp[0:1000])
+    
+    # The bigrams are cleaned of stopwords and "weird symbols" now
                  
-    # We will take later word counts from the effie_tokenized_tmp list, because it only contains "real words" 
-    # However, we will create the effie_bigrams list from effie_tokenized because this way,
-    # we do consider "weird symbols" as delimiters that separate words that have no bigram relationship
+    # We take later word counts and create the effie_bigrams from the effie_tokenized_tmp list,
+    # because it only contains "real words" 
+    # However, we could create the effie_bigrams list from effie_tokenized
+    # AFTER creation of bigrams because this way,
+    # we would respect that "weird symbols" often serve as delimiters
+    # that separate words that have no reasonable "bigram relationship"
     
     fdist2 = FreqDist(effie_tokenized_tmp)
     # print ("Descriptive counts from FreqDist fdist2: ", fdist2)
     
-    fdist1 = FreqDist(effie_tokenized)
-    # print ("Descriptive counts from FreqDist fdist1: ", fdist1)
+    # We create bigrams from the already filtered list of tokenized words
     
-    effie_bigrams = list(bigrams(effie_tokenized))
-    
-    # Print several nltk outputs for testing
-    
-    #print ("effie_bigrams[0:20]", effie_bigrams[0:20])
-    #print ("type(effie_bigrams[3][0])", type(effie_bigrams[3][0]))
-    #print ("effie_bigrams[3][0]", effie_bigrams[3][0])
-    #print ("effie_bigrams[3][0].lower()", effie_bigrams[3][0].lower())
-    #print ("First Bigrams (with count) in Effie Briest: \n", fdist_bigrams)
-    #print ("fdist_bigrams: ", fdist_bigrams)
-    #print ("type(fdist_bigrams): ", type(fdist_bigrams))
-    #print ("(fdist_bigrams.freq((',', 'daß')))*fdist_bigrams.N(): ", (fdist_bigrams.freq((',', 'daß')))*fdist_bigrams.N())
-    #print ("(fdist_bigrams._cumulative_frequencies((',', 'daß'))): ", (fdist_bigrams._cumulative_frequencies((',', 'daß'))))
-    #print ("fdist_bigrams.hapaxes()[0:5]: ", fdist_bigrams.hapaxes()[0:5])
-    #print ("len(fdist_bigrams)", len(fdist_bigrams))
-    
-    # Prepare filtering of bigrams list by stopwords
-    # We filter after creating the bigrams. It would not make sense to filter directly after tokenization,
-    # because we don't want to let words that were no bigrams in the original text to move together;
-    # even in the sentence "wollen, daß" we don't want "wollen" and "daß" to become a bigram -
-    # commas separate clauses, and these usually represent self-contained units with their own meaning and message.
-    # In sentiment analysis, word n-grams would need to be analyzed with respect to inter-clausal relationships,
-    # but this is not part of our agenda here - aggregating words from separate clauses would distort our results now.
-    
-    # print ("stopwords_tokenized[0:20]", stopwords_tokenized[0:20])
-    
-    # Create delimiters-stopword list, such as ',','.', '»', '!', '?', ';', '(', ')' (comma to be discussed)
-    
-    # TODO: check result bigramlist_occurence_descending (by creating string file) and adjust delimiter list + '-',...
-    # TODO: change for-loop where counts are calculated so that .N() is taken from the filtered bigrams list
-    # TODO: delete unneccessary print statements
-    # TODO: achieve that this .py-file may be called together with a text file in a "python *.py *.txt" manner from a command line
-    
-    # We could start filtering for "weird" symbols here already, but it's better to do that later by regular expressions
-    
-    # delimiters_tokenized = [',', '.', '»', '›', '«', '.«', ',«', '.‹«', "'«", '?«', '!«', '«,', '!', '?', ';', ':', "'", '(', ')', '),', '...', '...!', '...,', '...?', '...«', '..«', '.«‹', '.‹']
-    # stopchars_tokenized = stopwords_tokenized + delimiters_tokenized
-        
-    # Filter bigrams list by stopwords
-    
-    effie_bigrams_tmp = []
-    for h in range (0, len(effie_bigrams)):
-        if (effie_bigrams[h][0].lower() not in stopchars.lower()) and (effie_bigrams[h][1].lower() not in stopchars.lower()):
-            effie_bigrams_tmp.append(effie_bigrams[h])
-            
-    effie_bigrams = effie_bigrams_tmp
-            
-    # Filter bigrams list so that only those bigrams with symbols from [0-9] and [A-Za-z] are kept
-    
-    effie_bigrams_tmp = []
-    for h in range (0, len(effie_bigrams)):
-        if (only_letters(effie_bigrams[h][0]) and only_letters(effie_bigrams[h][1])):
-            effie_bigrams_tmp.append(effie_bigrams[h])
-            
-    effie_bigrams = effie_bigrams_tmp
-    
-    # The bigrams are cleaned of stopwords and "weird symbols" now
+    effie_bigrams = list(bigrams(effie_tokenized_tmp))
     
     # Determine number of occurences of every bigram
     
@@ -180,7 +123,6 @@ def main(text_file):
     # create bigram list (with counts) ordered by first bigram component
     
     bigrams_sortby_first = sorted(fdist_bigrams, key=itemgetter(0,1))
-    #print("First Bigrams sorted by first component: \n", bigrams_sortby_first[450:475])
     
     # create bigram list of lists:
     # | bigram AB | Nr. of AB | Nr. of A~B | Nr. of ~AB | Nr. of ~A~B |
@@ -207,33 +149,17 @@ def main(text_file):
         count_ab = number_of_AB
         count_a = number_of_A_total
         count_b = number_of_B_total
-        N = fdist2.N()
-        #N = fdist_bigrams.N()
-        
-        #print ("current_bigram, count_a, count_b, count_ab, N:", current_bigram, count_a, count_b, count_ab, N)
-        
-        current_bigram_LogL = _col_log_likelihood(count_a, count_b, count_ab, N)
+        N = len(effie_tokenized_tmp)
+        # N can also be obtained from fdist2:
+        #N = fdist2.N()
+            
+        current_bigram_LogL = calculate_log_likelihood(count_a, count_b, count_ab, N)
         bigram_listoflists[i][1] = current_bigram_LogL
-        
-        #bigram_listoflists.append([bigrams_sortby_first[i],0,0,0,0])
-        #bigram_listoflists[i][1] = (fdist_bigrams.freq())*fdist_bigrams.N()
-    
-    # print ("bigram_listoflists: ", bigram_listoflists)
     
     # Sort created list of bigrams with counts by number of bigram occurence, descending
     
     bigramlist_occurence_descending = sorted(bigram_listoflists, key=itemgetter(1,0), reverse=True)
     bigramlist_occurence_descending.insert(0, ['(bigram)' , '2*log*lambda' , 'c1' , 'c2' , 'c12'])
-    
-    #wanted_bigrams = [('hohen','cremmen'),('ge','frau'),('vetter','briest'),('fra','briest'),('sei','dank'),('gleich','danach'),('weites','feld'),('gott','sei'),('doktor','hannemann'),('selben','augenblicke'),('sidonie','grasenabb'),('mutter','tochter'),('calatrava','ritter'),('junge','frau'),('pastor','lindequist'),('tante','therese'),('jungen','frau'),('sagte','effi'),('baron','innstetten'),('links','rechts')]
-    
-    #wanted_bigrams = ''.join(wanted_bigrams)
-    
-    #for m in range (0, 2000):
-    #    if(m<20):
-    #        print(bigramlist_occurence_descending[m])
-    #    if(   bigramlist_occurence_descending[m][0] in wanted_bigrams   ):
-    #        print(bigramlist_occurence_descending[m])
     
     for m in range (0, 21):
         print(bigramlist_occurence_descending[m])
