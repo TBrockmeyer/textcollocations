@@ -44,19 +44,19 @@ def _col_log_likelihood(count_a, count_b, count_ab, N):
     L4 = math.pow(p2,count_b - count_ab)*math.pow((1.0-p2),(N - count_a - count_b + count_ab))
     
     if(L1!=0):
-        logL1 = math.log(L1,10)
+        logL1 = math.log(L1,math.exp(1))
     else:
         logL1 = 0
     if(L2!=0):
-        logL2 = math.log(L2,10)
+        logL2 = math.log(L2,math.exp(1))
     else:
         logL2 = 0
     if(L3!=0):
-        logL3 = math.log(L3,10)
+        logL3 = math.log(L3,math.exp(1))
     else:
         logL3 = 0
     if(L4!=0):
-        logL4 = math.log(L4,10)
+        logL4 = math.log(L4,math.exp(1))
     else:
         logL4 = 0
         
@@ -83,6 +83,25 @@ def main(text_file):
     for l in range (0, len(effie_tokenized)):
         if (only_letters(effie_tokenized[l]) and only_letters(effie_tokenized[l])):
             effie_tokenized_tmp.append(effie_tokenized[l])
+            
+    # Load pre-defined stopwords list
+    
+    f = open('stopwords.txt')
+    stopwords = f.read()
+    stopwords_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(stopwords)
+    
+    stopchars_tokenized = stopwords_tokenized
+    
+    # Create a linebreak-delimited string from these tokenized stopwords again, which is easier to search and compare with the novel bigrams later
+    
+    stopchars = ''.join(stopchars_tokenized)
+    
+    # Filter tokenized words by stopwords
+    effie_tokenized_tmp_tmp = []
+    for o in range (0, len(effie_tokenized_tmp)):
+        if (effie_tokenized_tmp[o].lower() not in stopchars.lower()):
+            effie_tokenized_tmp_tmp.append(effie_tokenized_tmp[o])
+    effie_tokenized_tmp = effie_tokenized_tmp_tmp
             
     # print ("effie_tokenized_tmp[0:1000]:",effie_tokenized_tmp[0:1000])
                  
@@ -120,12 +139,6 @@ def main(text_file):
     # In sentiment analysis, word n-grams would need to be analyzed with respect to inter-clausal relationships,
     # but this is not part of our agenda here - aggregating words from separate clauses would distort our results now.
     
-    # Load pre-defined stopwords list
-    
-    f = open('stopwords.txt')
-    stopwords = f.read()
-    stopwords_tokenized = nltk.tokenize.WordPunctTokenizer().tokenize(stopwords)
-    
     # print ("stopwords_tokenized[0:20]", stopwords_tokenized[0:20])
     
     # Create delimiters-stopword list, such as ',','.', '»', '!', '?', ';', '(', ')' (comma to be discussed)
@@ -139,12 +152,7 @@ def main(text_file):
     
     # delimiters_tokenized = [',', '.', '»', '›', '«', '.«', ',«', '.‹«', "'«", '?«', '!«', '«,', '!', '?', ';', ':', "'", '(', ')', '),', '...', '...!', '...,', '...?', '...«', '..«', '.«‹', '.‹']
     # stopchars_tokenized = stopwords_tokenized + delimiters_tokenized
-    stopchars_tokenized = stopwords_tokenized
-    
-    # Create a linebreak-delimited string from these tokenized stopwords again, which is easier to search and compare with the novel bigrams later
-    
-    stopchars = ''.join(stopchars_tokenized)
-    
+        
     # Filter bigrams list by stopwords
     
     effie_bigrams_tmp = []
@@ -205,7 +213,7 @@ def main(text_file):
         #print ("current_bigram, count_a, count_b, count_ab, N:", current_bigram, count_a, count_b, count_ab, N)
         
         current_bigram_LogL = _col_log_likelihood(count_a, count_b, count_ab, N)
-        bigram_listoflists[i][1] = 2*current_bigram_LogL
+        bigram_listoflists[i][1] = current_bigram_LogL
         
         #bigram_listoflists.append([bigrams_sortby_first[i],0,0,0,0])
         #bigram_listoflists[i][1] = (fdist_bigrams.freq())*fdist_bigrams.N()
@@ -217,7 +225,17 @@ def main(text_file):
     bigramlist_occurence_descending = sorted(bigram_listoflists, key=itemgetter(1,0), reverse=True)
     bigramlist_occurence_descending.insert(0, ['(bigram)' , '2*log*lambda' , 'c1' , 'c2' , 'c12'])
     
-    for m in range (0, 20):
+    #wanted_bigrams = [('hohen','cremmen'),('ge','frau'),('vetter','briest'),('fra','briest'),('sei','dank'),('gleich','danach'),('weites','feld'),('gott','sei'),('doktor','hannemann'),('selben','augenblicke'),('sidonie','grasenabb'),('mutter','tochter'),('calatrava','ritter'),('junge','frau'),('pastor','lindequist'),('tante','therese'),('jungen','frau'),('sagte','effi'),('baron','innstetten'),('links','rechts')]
+    
+    #wanted_bigrams = ''.join(wanted_bigrams)
+    
+    #for m in range (0, 2000):
+    #    if(m<20):
+    #        print(bigramlist_occurence_descending[m])
+    #    if(   bigramlist_occurence_descending[m][0] in wanted_bigrams   ):
+    #        print(bigramlist_occurence_descending[m])
+    
+    for m in range (0, 21):
         print(bigramlist_occurence_descending[m])
     
     
